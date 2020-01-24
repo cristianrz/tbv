@@ -25,7 +25,7 @@ main(int argc, char *argv[])
 
 		int err = tvcinit();
 		if (err != 0) {
-			fprintf(stderr, "E: could not initialize\n");
+			fprintf(stderr, "FATAL: could not initialize\n");
 			exit(EXIT_FAILURE);
 		}
 
@@ -36,27 +36,32 @@ main(int argc, char *argv[])
 		printf("Initialised empty tvc repository in %s/.tvc\n", cwd);
 	} else if (strcmp(argv[1], "commit") == 0) {
 		if (argc < 3) {
-			fprintf(stderr, "nothing to commit, exiting\n");
-			exit(EXIT_FAILURE);
+			printf("nothing to commit, exiting\n");
+			exit(EXIT_SUCCESS);
 		}
-
 
 		char input[40];
 		char *files[argc - 2];
 
 		printf("Enter a commit name: ");
-		// fgets(input, sizeof(input), stdin);
-		strlcpy(input,"the commit name",sizeof(input));
+		fgets(input, sizeof(input), stdin);
+		// strlcpy(input, "the commit name\n", sizeof(input));
 
 		for (int i = 2; i < argc; i++) {
 			files[i - 2] = argv[i];
 		}
 
-		int err = tvccommit(files, input, sizeof(input));
+		int err = tvccommit(files, input,
+		    sizeof(files) / sizeof(files[0]), sizeof(input));
 		if (err != 0) {
-			fprintf(stderr, "E: failed comitting\n");
+			fprintf(stderr, "FATAL: failed comitting\n");
 			exit(EXIT_FAILURE);
 		}
+	} else if (strcmp(argv[1], "log") == 0) {
+		tvclog();
+	} else {
+		help();
+		exit(EXIT_FAILURE);
 	}
 
 	return 0;
