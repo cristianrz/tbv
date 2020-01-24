@@ -8,7 +8,7 @@
             "program": "${fileDirname}/${fileBasenameNoExtension}",
             "args": [
                 "commit",
-                "pedro"
+                "main.c"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
