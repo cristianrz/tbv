@@ -56,17 +56,17 @@ randomid(char id[], int c)
 }
 
 int
-tvcinit()
+tbvinit()
 {
 	char *cherr;
 	int err;
 
-	err = system("mkdir -p .tvc/logs");
+	err = system("mkdir -p .tbv/logs");
 	if (err != 0) {
 		return 1;
 	}
 
-	err = system("touch .tvc/logs/HEAD");
+	err = system("touch .tbv/logs/HEAD");
 	if (err != 0) {
 		return 1;
 	}
@@ -75,24 +75,16 @@ tvcinit()
 }
 
 int
-tvccommit(char *files[], char *message, int filesc, int messagec)
+tbvcommit(char *message, int messagec)
 {
-	char id[6];
-	char cmd[50];
+	char cmd[50], id[6], time[20], line[100];
+	int linec = sizeof(line);
 
 	randomid(id, sizeof(id));
 
-	strlcpy(cmd, "tar --exclude=.tvc -czf .tvc/", sizeof(cmd));
+	strlcpy(cmd, "tar --exclude=.tbv -czf .tbv/", sizeof(cmd));
 	strlcat(cmd, id, sizeof(cmd));
-	strlcat(cmd, ".tgz ", sizeof(cmd));
-
-	for (size_t i = 0; i < filesc; i++) {
-		strlcat(cmd, files[i], sizeof(cmd));
-		if (i == filesc - 1) {
-			break;
-		}
-		strlcat(cmd, " ", sizeof(cmd));
-	}
+	strlcat(cmd, ".tgz .", sizeof(cmd));
 
 	int err = system(cmd);
 	if (err != 0) {
@@ -100,28 +92,24 @@ tvccommit(char *files[], char *message, int filesc, int messagec)
 		return 1;
 	}
 
-	char time[20];
 	now(time, sizeof(time));
 
-	err = fileappend(".tvc/logs/HEAD", time, sizeof(time));
-	if (err != 0) {
-		fprintf(stderr, "E: failed appending to HEAD\n");
-		return 1;
-	}
+	(void)strlcat(line, id, linec);
+	(void)strlcat(line, ",", linec);
+	(void)strlcat(line, time, linec);
+	(void)strlcat(line, ",", linec);
+	(void)strlcat(line, message, linec);
 
-	fileappend(".tvc/logs/HEAD", ",", sizeof(""));
-	fileappend(".tvc/logs/HEAD", id, sizeof(id));
-	fileappend(".tvc/logs/HEAD", ",", sizeof(""));
-	fileappend(".tvc/logs/HEAD", message, messagec);
+	fileappend(".tbv/logs/HEAD", line, sizeof(line));
 
 	return 0;
 }
 
 int
-tvclog()
+tbvlog()
 {
 	char cmd[] =
-	    "tac .tvc/logs/HEAD | sed 's/$/\\n/g; s/,/\\n\\t/g' | less -X -F";
+	    "tac .tbv/logs/HEAD | sed 's/$/\\n/; s/^/commit /; s/,/\\nDate: /; s/,/\\n\\n\\t/' | less -X -F";
 
 	int err = system(cmd);
 

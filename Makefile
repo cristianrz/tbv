@@ -1,24 +1,25 @@
 include config.mk
 
-CC = clang
-CFLAGS = -fsanitize=signed-integer-overflow -fsanitize=undefined -ggdb3 -O0 \
-	-std=c11 -Wall -W -Werror -Wextra -Wno-sign-compare -Wno-unused-parameter \
-	-Wpointer-arith -Wbad-function-cast -Wno-unused-variable -Wshadow 
 LIBS = -lcrypt -lbsd -lm
-OBJ = main.c tvc.h
+OBJ = main.c tbv.h
 
-all: tvc
+all: tbv
 
-tvc: $(OBJ)
-	$(CC) $(CFLAGS) main.c $(LIBS) -o tvc
+tbv: $(OBJ)
+	$(CC) $(CFLAGS) main.c $(LIBS) -o tbv
 
 clean:
-	rm -f tvc tvc-$(VERSION).tar.gz
+	rm -f tbv tbv-$(VERSION).tar.gz main
 
 dist: clean
-	mkdir -p tvc-$(VERSION)
-	cp -R LICENSE Makefile config.mk $(OBJ) tvc-$(VERSION)
-	tar -czf tvc-$(VERSION).tar.gz tvc-$(VERSION)
-	rm -rf tvc-$(VERSION)
+	mkdir -p tbv-$(VERSION)
+	cp -R LICENSE Makefile config.mk $(OBJ) tbv-$(VERSION)
+	tar -czf tbv-$(VERSION).tar.gz tbv-$(VERSION)
+	rm -rf tbv-$(VERSION)
 
-.PHONY: all tvc clean dist
+install: all
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	cp -f tbv $(DESTDIR)$(PREFIX)/bin
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/tbv
+
+.PHONY: all tbv clean dist
