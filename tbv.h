@@ -23,6 +23,10 @@ fileappend(char path[], char buffer[], int bufferc)
 		return 1;
 	}
 
+	// printf("=====\n");
+	// printf("message: '%s'", buffer);
+	// printf("=====\n");
+
 	int c = fprintf(pFile, "%s", buffer);
 	if (c == 0) {
 		fprintf(stderr, "E: failed printing to pFile\n");
@@ -62,6 +66,7 @@ tbvinit()
 	int err;
 
 	err = system("mkdir -p .tbv/logs");
+	err = system("mkdir -p .tbv/objects");
 	if (err != 0) {
 		return 1;
 	}
@@ -75,14 +80,14 @@ tbvinit()
 }
 
 int
-tbvcommit(char *message, int messagec)
+tbvcommit(char *message, int messagec, char *id, int idc)
 {
-	char cmd[50], id[6], time[20], line[100];
+	char cmd[100], time[20], line[150];
 	int linec = sizeof(line);
 
-	randomid(id, sizeof(id));
+	randomid(id, idc);
 
-	strlcpy(cmd, "tar --exclude=.tbv -czf .tbv/", sizeof(cmd));
+	strlcpy(cmd, "tar --exclude=.tbv -czf .tbv/objects/", sizeof(cmd));
 	strlcat(cmd, id, sizeof(cmd));
 	strlcat(cmd, ".tgz .", sizeof(cmd));
 
@@ -99,8 +104,15 @@ tbvcommit(char *message, int messagec)
 	(void)strlcat(line, time, linec);
 	(void)strlcat(line, ",", linec);
 	(void)strlcat(line, message, linec);
+	(void)strlcat(line, "\n", linec);
 
-	fileappend(".tbv/logs/HEAD", line, sizeof(line));
+	err = fileappend(".tbv/logs/HEAD", line, sizeof(line));
+	if (err != 0) {
+		fprintf(stderr, "E: Failed to commit\n");
+		return 1;
+	}
+
+	printf("[%s] %s\n", id, message);
 
 	return 0;
 }
@@ -109,7 +121,7 @@ int
 tbvlog()
 {
 	char cmd[] =
-	    "tac .tbv/logs/HEAD | sed 's/$/\\n/; s/^/commit /; s/,/\\nDate: /; s/,/\\n\\n\\t/' | less -X -F";
+	    "tac .tbv/logs/HEAD | sed 's/$/\\n/; s/^/commit /; s/,/\\nDate: /; s/,/\\n\\n\\t/' | less";
 
 	int err = system(cmd);
 
