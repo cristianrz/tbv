@@ -36,14 +36,17 @@ main(int argc, char *argv[])
 		}
 		printf("Initialised empty tbv repository in %s/.tbv\n", cwd);
 	} else if (strcmp(argv[1], "commit") == 0) {
+		if (argc < 4 || strcmp(argv[2], "-m") != 0 ||
+		    strcmp(argv[3], "") == 0) {
+			fprintf(stderr,
+			    "Aborting commit due to empty commit message.\n");
+			exit(EXIT_FAILURE);
+		}
 
-		char input[40];
+		char id[42] = "";
 
-		printf("Enter a commit name: ");
-		fgets(input, sizeof(input), stdin);
-		// strlcpy(input, "the commit name\n", sizeof(input));
-
-		int err = tbvcommit(input, sizeof(input));
+		int err =
+		    tbvcommit(argv[3], strlen(argv[3]), id, sizeof(id));
 		if (err != 0) {
 			fprintf(stderr, "FATAL: failed comitting\n");
 			exit(EXIT_FAILURE);
